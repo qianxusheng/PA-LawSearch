@@ -1,11 +1,12 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import './Home.css';
 
-function Home() {
+const Home: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleSearch = (query) => {
+  const handleSearch = (query: string) => {
     navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
@@ -23,6 +24,6 @@ function Home() {
       </div>
     </div>
   );
-}
+};
 
 export default Home;

@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { CaseResult } from '../../types';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import SearchResults from '../../components/SearchResults/SearchResults';
 import CaseDetail from '../../components/CaseDetail/CaseDetail';
 import './Search.css';
 
-function Search() {
+const Search: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<CaseResult[] | null>(null);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -23,7 +24,7 @@ function Search() {
     }
   }, [searchParams]);
 
-  const handleSearch = async (searchQuery, page = 1) => {
+  const handleSearch = async (searchQuery: string, page = 1) => {
     setQuery(searchQuery);
     setCurrentPage(page);
     setIsLoading(true);
@@ -42,20 +43,20 @@ function Search() {
       setResults(data.results);
       setTotal(data.total);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
       setResults([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     if (query) {
       handleSearch(query, newPage);
     }
   };
 
-  const handleCaseClick = (caseId) => {
+  const handleCaseClick = (caseId: string) => {
     setSelectedCaseId(caseId);
   };
 
@@ -114,6 +115,6 @@ function Search() {
       </div>
     </div>
   );
-}
+};
 
 export default Search;

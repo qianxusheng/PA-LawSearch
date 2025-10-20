@@ -1,8 +1,8 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Home from './pages/Home/Home';
-import Search from './pages/Search/Search';
+import { Home, Search } from './pages';
 
-function App() {
+const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
@@ -12,6 +12,6 @@ function App() {
       </Routes>
     </BrowserRouter>
   );
-}
+};
 
 export default App;

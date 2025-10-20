@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { CaseDetail as CaseDetailType } from '../../types';
+import React from 'react';
+import { useCaseDetail } from '@/hooks';
 
 interface CaseDetailProps {
   caseId: string;
@@ -7,35 +7,7 @@ interface CaseDetailProps {
 }
 
 const CaseDetail: React.FC<CaseDetailProps> = ({ caseId, onClose }) => {
-  const [caseData, setCaseData] = useState<CaseDetailType | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchCase = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`http://localhost:5000/cases/${caseId}`);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch case details');
-        }
-
-        const data = await response.json();
-        setCaseData(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (caseId) {
-      fetchCase();
-    }
-  }, [caseId]);
+  const { caseData, isLoading, error } = useCaseDetail(caseId);
 
   if (!caseId) return null;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CaseResult } from '../../types';
+import { CaseResult } from '@/types';
 
 interface ResultCardProps {
   result: CaseResult;

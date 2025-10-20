@@ -1,6 +1,6 @@
 import React from 'react';
-import { CaseResult } from '../../types';
-import ResultCard from './ResultCard';
+import { CaseResult } from '@/types';
+import { ResultCard } from '@/components';
 
 interface SearchResultsProps {
   results: CaseResult[] | null;

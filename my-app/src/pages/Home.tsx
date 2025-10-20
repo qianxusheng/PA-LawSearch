@@ -7,7 +7,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
-    navigate(`/search?q=${encodeURIComponent(query)}`);
+    navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(query)}`);
   };
 
   return (

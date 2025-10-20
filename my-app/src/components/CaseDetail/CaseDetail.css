@@ -1,0 +1,156 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 16px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.close-button:hover {
+  background-color: #ff4444;
+  color: white;
+}
+
+.modal-loading,
+.modal-error {
+  padding: 3rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.modal-error {
+  color: #c33;
+}
+
+.case-detail {
+  padding: 2.5rem;
+  padding-top: 3.5rem;
+}
+
+.case-title {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin: 0 0 1.5rem;
+  line-height: 1.4;
+}
+
+.case-metadata {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.metadata-item {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.metadata-item strong {
+  color: #333;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.case-section {
+  margin-bottom: 1.5rem;
+}
+
+.case-section h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #646cff;
+}
+
+.case-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #555;
+}
+
+.case-full-text {
+  background-color: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #646cff;
+  white-space: pre-wrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #333;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.case-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .modal-content {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .case-detail {
+    padding: 1rem;
+  }
+
+  .case-title {
+    font-size: 1.4rem;
+  }
+
+  .case-metadata {
+    grid-template-columns: 1fr;
+  }
+}

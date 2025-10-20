@@ -47,45 +47,17 @@ mapping = {
         "properties": {
             # Basic info
             "id": {"type": "keyword"},
-            "name": {"type": "keyword"},
-            "name_abbreviation": {"type": "keyword"},
+            "name": {"type": "text"},
             "decision_date": {"type": "keyword"},
-            "docket_number": {"type": "keyword"},
-
-            # Court info
-            "court_name": {"type": "keyword"},
-            "court_abbreviation": {"type": "keyword"},
-
-            # Jurisdiction info
-            "jurisdiction_name": {"type": "keyword"},
-            "jurisdiction_name_long": {"type": "keyword"},
-
-            # Citations
-            "citations_cite": {"type": "keyword"},
-            "citation_type": {"type": "keyword"},
+            "court_name": {"type": "text"},
+            "jurisdiction_name": {"type": "text"},
 
             # People
-            "parties": {"type": "keyword"},
-            "judges": {"type": "keyword"},
-            "attorneys": {"type": "keyword"},
-
-            # Opinions
-            "opinion_type": {"type": "keyword"},
-            "opinion_author": {"type": "keyword"},
-
-            # Provenance
-            "provenance_source": {"type": "keyword"},
-            "provenance_batch": {"type": "keyword"},
+            "parties": {"type": "text"},
+            "judges": {"type": "text"},
 
             # Metadata
-            "last_updated": {"type": "keyword"},
-
-            # Numeric fields for range queries
             "word_count": {"type": "integer"},
-            "char_count": {"type": "integer"},
-            "pagerank_percentile": {"type": "float"},
-            "first_page": {"type": "integer"},
-            "last_page": {"type": "integer"},
 
             # Full text for query with custom analyzer
             "full_text": {
@@ -118,61 +90,26 @@ for filename in tqdm(json_files, desc="Indexing cases"):
     else:
         full_text = opinions_text
 
-    # Extract parties, judges, attorneys (keep as arrays for multi-value matching)
+    # Extract basic info
     parties = casebody.get("parties", [])
     judges = casebody.get("judges", [])
-    attorneys = casebody.get("attorneys", [])
 
-    # Extract opinion information
-    opinion_types = [op.get("type", "") for op in opinions if op.get("type")]
-    opinion_authors = [op.get("author", "") for op in opinions if op.get("author")]
-
-    # Extract citations information
-    citations = case_data.get("citations", [])
-    citations_cite = [c.get("cite", "") for c in citations if "cite" in c]
-    citation_types = [c.get("type", "") for c in citations if "type" in c]
-
-    # Extract analysis information
     analysis = case_data.get("analysis", {})
     word_count = analysis.get("word_count", 0)
-    char_count = analysis.get("char_count", 0)
-    pagerank_percentile = analysis.get("pagerank", {}).get("percentile", 0.0)
 
-    # Extract provenance information
-    provenance = case_data.get("provenance", {})
-    provenance_source = provenance.get("source", "")
-    provenance_batch = provenance.get("batch", "")
-
-    # Extract court and jurisdiction information
     court = case_data.get("court", {})
     jurisdiction = case_data.get("jurisdiction", {})
 
-    # Build document
+    # Build simplified document
     doc = {
         "id": case_data.get("id"),
         "name": case_data.get("name"),
-        "name_abbreviation": case_data.get("name_abbreviation"),
         "decision_date": case_data.get("decision_date"),
-        "docket_number": case_data.get("docket_number"),
         "court_name": court.get("name"),
-        "court_abbreviation": court.get("name_abbreviation"),
         "jurisdiction_name": jurisdiction.get("name"),
-        "jurisdiction_name_long": jurisdiction.get("name_long"),
-        "citations_cite": citations_cite,
-        "citation_type": citation_types,
-        "last_updated": case_data.get("last_updated"),
-        "parties": parties,
-        "judges": judges,
-        "attorneys": attorneys,
-        "opinion_type": opinion_types,
-        "opinion_author": opinion_authors,
-        "provenance_source": provenance_source,
-        "provenance_batch": provenance_batch,
+        "parties": ", ".join(parties) if parties else "",
+        "judges": ", ".join(judges) if judges else "",
         "word_count": word_count,
-        "char_count": char_count,
-        "pagerank_percentile": pagerank_percentile,
-        "first_page": case_data.get("first_page"),
-        "last_page": case_data.get("last_page"),
         "full_text": full_text
     }
     es.index(index=index_name, document=doc)

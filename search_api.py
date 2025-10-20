@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
+CORS(app)
 
 ## TODO: the Elasticsearch server should be moved to CRC server maybe
 ## TODO: determined definition of API interface
@@ -16,137 +18,76 @@ es = Elasticsearch(
 index_name = "legal_cases_test"
 
 
-@app.route('/search', methods=['POST'])
-def search():
+@app.route('/cases', methods=['GET'])
+def get_cases():
     """
-    Search API with Query + Filters
+    Get ranking list of cases based on query
 
-    Request Body:
-    {
-        "query": "murder evidence",
-        "filters": {
-            "court_name": "Pennsylvania High Court",
-            "jurisdiction_name": "Pa.",
-            "decision_date_from": "1790",
-            "decision_date_to": "1800",
-            "word_count_min": 1000,
-            "word_count_max": 5000
-        },
-        "size": 100,
-        "from": 0
-    }
+    Query params:
+        query: search text (required)
+        size: number of results (default 10)
+        page: page number starting from 1 (default 1)
+
+    Example: GET /cases?query=murder&size=10&page=1
 
     Response:
     {
         "total": 150,
-        "hits": [
+        "page": 1,
+        "size": 10,
+        "results": [
             {
-                "doc_id": "12121253",
+                "id": "12121253",
                 "score": 8.5432,
                 "name": "Pennsylvania v. Susanna M'Kee",
                 "decision_date": "1791-09",
                 "court_name": "Allegheny County Court",
                 "jurisdiction_name": "Pa.",
-                "word_count": 3462,
-                "full_text": "..."
+                "word_count": 3462
             }
         ]
     }
     """
     try:
-        data = request.json
-        query_text = data.get("query", "")
-        filters = data.get("filters", {})
-        size = data.get("size", 100)
-        from_ = data.get("from", 0)
+        query_text = request.args.get("query", "")
+        size = int(request.args.get("size", 10)) 
+        page = int(request.args.get("page", 1))
+        from_ = (page - 1) * size
+
+        if not query_text:
+            return jsonify({"error": "query parameter is required"}), 400
 
         # Build ES query
         es_query = {
             "query": {
-                "bool": {
-                    "must": [],
-                    "filter": []
-                }
+                "match": {"full_text": query_text}
             },
             "size": size,
-            "from": from_
+            "from": from_,
+            "_source": ["id", "name", "decision_date", "court_name", "jurisdiction_name", "word_count"]
         }
-
-        # Query part
-        if query_text:
-            es_query["query"]["bool"]["must"].append({
-                "match": {"full_text": query_text}
-            })
-        else:
-            es_query["query"]["bool"]["must"].append({"match_all": {}})
-
-        # Filter part - keyword fields
-        keyword_filters = [
-            "court_name", "court_abbreviation",
-            "jurisdiction_name", "jurisdiction_name_long",
-            "opinion_type", "opinion_author",
-            "provenance_source", "provenance_batch",
-            "citation_type", "docket_number"
-        ]
-
-        for field in keyword_filters:
-            if field in filters and filters[field]:
-                es_query["query"]["bool"]["filter"].append({
-                    "term": {field: filters[field]}
-                })
-
-        # Date range filter
-        if "decision_date_from" in filters or "decision_date_to" in filters:
-            date_range = {}
-            if "decision_date_from" in filters:
-                date_range["gte"] = filters["decision_date_from"]
-            if "decision_date_to" in filters:
-                date_range["lte"] = filters["decision_date_to"]
-            es_query["query"]["bool"]["filter"].append({
-                "range": {"decision_date": date_range}
-            })
-
-        # Numeric range filters
-        numeric_ranges = {
-            "word_count": ("word_count_min", "word_count_max"),
-            "char_count": ("char_count_min", "char_count_max"),
-            "pagerank_percentile": ("pagerank_min", "pagerank_max")
-        }
-
-        for field, (min_key, max_key) in numeric_ranges.items():
-            if min_key in filters or max_key in filters:
-                range_filter = {}
-                if min_key in filters:
-                    range_filter["gte"] = filters[min_key]
-                if max_key in filters:
-                    range_filter["lte"] = filters[max_key]
-                es_query["query"]["bool"]["filter"].append({
-                    "range": {field: range_filter}
-                })
 
         # Execute search
         response = es.search(index=index_name, body=es_query)
 
-        # Format results
+        # Format results - only return ranking list, no full_text
         results = {
             "total": response["hits"]["total"]["value"],
-            "took": response["took"],
-            "hits": []
+            "page": page,
+            "size": size,
+            "results": []
         }
 
         for hit in response["hits"]["hits"]:
             doc = hit["_source"]
-            results["hits"].append({
-                "doc_id": doc.get("id"),
+            results["results"].append({
+                "id": doc.get("id"),
                 "score": hit["_score"],
                 "name": doc.get("name"),
                 "decision_date": doc.get("decision_date"),
                 "court_name": doc.get("court_name"),
                 "jurisdiction_name": doc.get("jurisdiction_name"),
-                "word_count": doc.get("word_count"),
-                "parties": doc.get("parties"),
-                "judges": doc.get("judges"),
-                "full_text": doc.get("full_text")
+                "word_count": doc.get("word_count")
             })
 
         return jsonify(results), 200
@@ -155,79 +96,24 @@ def search():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/retrieve', methods=['POST'])
-def retrieve():
+@app.route('/cases/<doc_id>', methods=['GET'])
+def get_case_detail(doc_id):
     """
-    Simple retrieve API - returns top K documents for a query
+    Get full case details including HTML/full_text by ID
 
-    Request Body:
-    {
-        "query": "murder evidence",
-        "top_k": 100
-    }
+    Example: GET /cases/12121253
 
     Response:
     {
-        "query": "murder evidence",
-        "total": 150,
-        "retrieved": 100,
-        "results": [
-            {
-                "doc_id": "12121253",
-                "score": 8.5432
-            }
-        ]
-    }
-    """
-    try:
-        data = request.json
-        query_text = data.get("query", "")
-        top_k = data.get("top_k", 100)
-
-        if not query_text:
-            return jsonify({"error": "query is required"}), 400
-
-        # Simple match query
-        response = es.search(
-            index=index_name,
-            body={
-                "query": {"match": {"full_text": query_text}},
-                "size": top_k,
-                "_source": ["id"]
-            }
-        )
-
-        results = {
-            "query": query_text,
-            "total": response["hits"]["total"]["value"],
-            "retrieved": len(response["hits"]["hits"]),
-            "results": [
-                {
-                    "doc_id": hit["_source"]["id"],
-                    "score": hit["_score"]
-                }
-                for hit in response["hits"]["hits"]
-            ]
-        }
-
-        return jsonify(results), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route('/get_doc/<doc_id>', methods=['GET'])
-def get_doc(doc_id):
-    """
-    Get a specific document by ID
-
-    Response:
-    {
-        "doc_id": "12121253",
+        "id": "12121253",
         "name": "Pennsylvania v. Susanna M'Kee",
         "decision_date": "1791-09",
-        "full_text": "...",
-        ...
+        "court_name": "Allegheny County Court",
+        "jurisdiction_name": "Pa.",
+        "parties": "Pennsylvania, Susanna M'Kee",
+        "judges": "Judge Smith",
+        "word_count": 3462,
+        "full_text": "..."
     }
     """
     try:
@@ -240,54 +126,10 @@ def get_doc(doc_id):
         )
 
         if response["hits"]["total"]["value"] == 0:
-            return jsonify({"error": "Document not found"}), 404
+            return jsonify({"error": "Case not found"}), 404
 
         doc = response["hits"]["hits"][0]["_source"]
         return jsonify(doc), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route('/filters/values', methods=['GET'])
-def get_filter_values():
-    """
-    Get all possible values for a filter field
-
-    Query: ?field=court_name
-
-    Response:
-    {
-        "field": "court_name",
-        "values": ["Pennsylvania High Court", "Allegheny County Court", ...],
-        "count": 25
-    }
-    """
-    try:
-        field = request.args.get("field")
-        if not field:
-            return jsonify({"error": "field parameter is required"}), 400
-
-        response = es.search(
-            index=index_name,
-            body={
-                "size": 0,
-                "aggs": {
-                    "unique_values": {
-                        "terms": {"field": field, "size": 1000}
-                    }
-                }
-            }
-        )
-
-        buckets = response["aggregations"]["unique_values"]["buckets"]
-        values = [bucket["key"] for bucket in buckets]
-
-        return jsonify({
-            "field": field,
-            "values": values,
-            "count": len(values)
-        }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -312,11 +154,9 @@ def health():
 
 
 if __name__ == '__main__':
-    print("Starting Search API...")
+    print("Starting PA Legal Case Search API...")
     print("Endpoints:")
-    print("  POST /search - Query + Filters search")
-    print("  POST /retrieve - Simple retrieval (for ranking)")
-    print("  GET  /get_doc/<doc_id> - Get document by ID")
-    print("  GET  /filters/values?field=<field_name> - Get filter values")
+    print("  GET  /cases?query=<text>&size=10&page=1 - Get ranking list")
+    print("  GET  /cases/<doc_id> - Get case full details")
     print("  GET  /health - Health check")
     app.run(debug=True, host='0.0.0.0', port=5000)

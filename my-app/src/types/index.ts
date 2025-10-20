@@ -1,3 +1,11 @@
+// backend api response type
+export interface SearchResponse {
+  total: number;
+  page: number;
+  size: number;
+  results: CaseResult[];
+}
+
 export interface CaseResult {
   id: string;
   name: string;

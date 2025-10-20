@@ -12,7 +12,7 @@ const CaseDetail: React.FC<CaseDetailProps> = ({ caseId, onClose }) => {
   if (!caseId) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-[1000] p-8" onClick={onClose}>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-1000 p-8" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <button
           className="absolute top-4 right-4 bg-gray-100 text-gray-600 border-none rounded-full w-10 h-10 text-2xl cursor-pointer z-10 transition-all flex items-center justify-center leading-none hover:bg-red-500 hover:text-white"

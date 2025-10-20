@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchBar from '../../components/SearchBar/SearchBar';
+import { SearchBar } from '../components';
+import { ROUTES } from '@constants';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();

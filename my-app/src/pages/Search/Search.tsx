@@ -4,7 +4,6 @@ import { CaseResult } from '../../types';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import SearchResults from '../../components/SearchResults/SearchResults';
 import CaseDetail from '../../components/CaseDetail/CaseDetail';
-import './Search.css';
 
 const Search: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -65,20 +64,22 @@ const Search: React.FC = () => {
   };
 
   return (
-    <div className="search-page">
-      <div className="search-header">
-        <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+    <div className="min-h-screen bg-white">
+      <div className="p-6 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-6xl mx-auto">
+          <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+        </div>
       </div>
 
-      <div className="search-content">
+      <div className="max-w-6xl mx-auto p-8">
         {error && (
-          <div className="error-message">
+          <div className="max-w-4xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-center">
             Error: {error}. Make sure the backend server is running on port 5000.
           </div>
         )}
 
         {(results || isLoading) && (
-          <div className="results-container">
+          <div className="max-w-4xl mx-auto">
             <SearchResults
               results={results}
               isLoading={isLoading}
@@ -87,20 +88,22 @@ const Search: React.FC = () => {
             />
 
             {total > 0 && (
-              <div className="pagination">
+              <div className="flex justify-center items-center gap-6 my-8">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1 || isLoading}
+                  className="px-5 py-2.5 text-base bg-indigo-600 text-white border-none rounded-md cursor-pointer transition-colors hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span>
+                <span className="text-sm text-gray-600 font-medium">
                   Page {currentPage} of {Math.ceil(total / 10)}
                   ({total} total results)
                 </span>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= Math.ceil(total / 10) || isLoading}
+                  className="px-5 py-2.5 text-base bg-indigo-600 text-white border-none rounded-md cursor-pointer transition-colors hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

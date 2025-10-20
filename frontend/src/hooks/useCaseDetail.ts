@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getCaseDetail } from '../api';
-import { CaseDetail } from '../types';
+import { getCaseDetail } from '@/api';
+import { CaseDetail } from '@/types';
 
 export const useCaseDetail = (caseId: string | null) => {
   const [caseData, setCaseData] = useState<CaseDetail | null>(null);

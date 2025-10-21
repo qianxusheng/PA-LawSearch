@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Home, Search } from './pages';
+import { Home, Search } from '@/pages';
 
 const App: React.FC = () => {
   return (

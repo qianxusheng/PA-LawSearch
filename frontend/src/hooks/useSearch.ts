@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { getCases } from '../api';
-import { CaseResult } from '../types';
+import { getCases } from '@/api';
+import { CaseResult } from '@/types';
 
 export const useSearch = () => {
   const [results, setResults] = useState<CaseResult[] | null>(null);

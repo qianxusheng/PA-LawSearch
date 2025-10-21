@@ -1,21 +1,18 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from elasticsearch import Elasticsearch
+from config import ES_PASSWORD, ES_HOST, ES_INDEX_NAME, \
+    API_HOST, API_PORT, API_DEBUG 
 
 app = Flask(__name__)
 CORS(app)
 
-## TODO: the Elasticsearch server should be moved to CRC server maybe
-## TODO: determined definition of API interface
-
 # Connect to Elasticsearch
 es = Elasticsearch(
-    "https://localhost:9200",
-    basic_auth=("elastic", "0=ej+ZeERilvX9QENqYQ"),
+    ES_HOST,
+    basic_auth=("elastic", ES_PASSWORD),
     verify_certs=False
 )
-
-index_name = "legal_cases_test"
 
 
 @app.route('/cases', methods=['GET'])
@@ -68,7 +65,7 @@ def get_cases():
         }
 
         # Execute search
-        response = es.search(index=index_name, body=es_query)
+        response = es.search(index=ES_INDEX_NAME, body=es_query)
 
         # Format results - only return ranking list, no full_text
         results = {
@@ -118,7 +115,7 @@ def get_case_detail(doc_id):
     """
     try:
         response = es.search(
-            index=index_name,
+            index=ES_INDEX_NAME,
             body={
                 "query": {"term": {"id": doc_id}},
                 "size": 1
@@ -140,7 +137,7 @@ def health():
     """Health check"""
     try:
         es.ping()
-        stats = es.count(index=index_name)
+        stats = es.count(index=ES_INDEX_NAME)
         return jsonify({
             "status": "healthy",
             "elasticsearch": "connected",
@@ -159,4 +156,4 @@ if __name__ == '__main__':
     print("  GET  /cases?query=<text>&size=10&page=1 - Get ranking list")
     print("  GET  /cases/<doc_id> - Get case full details")
     print("  GET  /health - Health check")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=API_DEBUG, host=API_HOST, port=API_PORT)

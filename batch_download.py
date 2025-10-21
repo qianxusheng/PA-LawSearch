@@ -3,8 +3,8 @@ import time
 from pathlib import Path
 import json
 
-# NOTE：Download data from case.law.
-# NOTE: Update these values for different collections
+# NOTE：Download data from case.law
+#       for each collection, you need to update these variables manually
 BASE_URL = "https://static.case.law/pa-commw/" # target URL
 OUTPUT_DIR = "data\Pa. Commw" # data path in current project
 NUM_VOLUMES = 168  # number of volumes on the target URL

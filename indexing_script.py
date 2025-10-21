@@ -3,16 +3,13 @@ import json
 import os
 import zipfile
 from tqdm import tqdm
+from config import ES_PASSWORD, ES_HOST, ES_INDEX_NAME
 
-PASSWORD = "0=ej+ZeERilvX9QENqYQ"
-ES_HOST = "https://localhost:9200"
 es = Elasticsearch(
     ES_HOST,
-    basic_auth=("elastic", PASSWORD),
+    basic_auth=("elastic", ES_PASSWORD),
     verify_certs=False
 )
-
-index_name = "pa_law_cases"
 
 ## keyword and text mapping with custom analyzer
 mapping = {
@@ -68,7 +65,7 @@ mapping = {
     }
 }
 
-es.indices.create(index=index_name, body=mapping)
+es.indices.create(index=ES_INDEX_NAME, body=mapping)
 
 DATA_DIR = "data"
 
@@ -124,5 +121,5 @@ for zip_path, json_filename in tqdm(json_files_info, desc="Indexing cases"):
         "word_count": word_count,
         "full_text": full_text
     }
-    es.index(index=index_name, document=doc)
+    es.index(index=ES_INDEX_NAME, document=doc)
 

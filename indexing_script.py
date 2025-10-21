@@ -1,18 +1,18 @@
 from elasticsearch import Elasticsearch
 import json
 import os
+import zipfile
 from tqdm import tqdm
 
-## TODO: indexing all docs
-## TODO: how to collect, where to store?
-
+PASSWORD = "0=ej+ZeERilvX9QENqYQ"
+ES_HOST = "https://localhost:9200"
 es = Elasticsearch(
-    "https://localhost:9200",
-    basic_auth=("elastic", "0=ej+ZeERilvX9QENqYQ"),
+    ES_HOST,
+    basic_auth=("elastic", PASSWORD),
     verify_certs=False
 )
 
-index_name = "legal_cases_test"
+index_name = "pa_law_cases"
 
 ## keyword and text mapping with custom analyzer
 mapping = {
@@ -68,16 +68,28 @@ mapping = {
     }
 }
 
-if es.indices.exists(index=index_name):
-    es.indices.delete(index=index_name)
 es.indices.create(index=index_name, body=mapping)
 
-DATA_DIR = "data/add"
-json_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json")]
-for filename in tqdm(json_files, desc="Indexing cases"):
-    file_path = os.path.join(DATA_DIR, filename)
-    with open(file_path, "r", encoding="utf-8") as f:
-        case_data = json.load(f)
+DATA_DIR = "data"
+
+# collecting all the json path
+json_files_info = []
+for folder_name in os.listdir(DATA_DIR):
+    folder_path = os.path.join(DATA_DIR, folder_name)
+    if os.path.isdir(folder_path):
+        for zip_name in os.listdir(folder_path):
+            if zip_name.endswith(".zip"):
+                zip_path = os.path.join(folder_path, zip_name)
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    for file_info in zip_ref.namelist():
+                        if file_info.endswith(".json") and "json/" in file_info:
+                            json_files_info.append((zip_path, file_info))
+
+# batch processing
+for zip_path, json_filename in tqdm(json_files_info, desc="Indexing cases"):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        with zip_ref.open(json_filename) as f:
+            case_data = json.load(f)
 
     # Preprocessing: merge full text (opinions.text + head_matter)
     full_text = ""

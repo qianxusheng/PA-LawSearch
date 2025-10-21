@@ -5,17 +5,16 @@ from elasticsearch import Elasticsearch
 app = Flask(__name__)
 CORS(app)
 
-## TODO: the Elasticsearch server should be moved to CRC server maybe
-## TODO: determined definition of API interface
-
 # Connect to Elasticsearch
+PASSWORD = "0=ej+ZeERilvX9QENqYQ"
+ES_HOST = "https://localhost:9200"
 es = Elasticsearch(
-    "https://localhost:9200",
-    basic_auth=("elastic", "0=ej+ZeERilvX9QENqYQ"),
+    ES_HOST,
+    basic_auth=("elastic", PASSWORD),
     verify_certs=False
 )
 
-index_name = "legal_cases_test"
+index_name = "pa_law_cases"
 
 
 @app.route('/cases', methods=['GET'])

@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import ES_INDEX_DENSE, TOP_K_RETRIEVAL
+from config import ES_INDEX_DENSE, TOP_K_RERANK
 from models.dual_encoder import DualEncoder
 
 
@@ -101,13 +101,13 @@ class DenseSearcher:
 
         return response["hits"]["hits"][0]["_source"]
 
-    def search_with_full_text(self, query, size=TOP_K_RETRIEVAL):
+    def search_with_full_text(self, query, size=TOP_K_RERANK):
         """
         Search and return results with full_text for reranking
 
         Args:
             query: Query string
-            size: Number of candidates to retrieve (default: TOP_K_RETRIEVAL)
+            size: Number of candidates to retrieve (default: TOP_K_RERANK)
 
         Returns:
             list of dicts with full document data

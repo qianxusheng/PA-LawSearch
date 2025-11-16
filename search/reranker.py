@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.cross_encoder import CrossEncoder
 from search.dense_searcher import DenseSearcher
-from config import TOP_K_RETRIEVAL, TOP_K_RERANK
+from config import TOP_K_RERANK
 
 
 class Reranker:
@@ -27,7 +27,7 @@ class Reranker:
             self.dense_searcher = dense_searcher
         self.cross_encoder = cross_encoder or CrossEncoder()
 
-    def search_and_rerank(self, query, top_k_retrieval=TOP_K_RETRIEVAL,
+    def search_and_rerank(self, query, top_k_retrieval=TOP_K_RERANK,
                           top_k_rerank=None):
         """
         Two-stage retrieval: coarse retrieval + fine-grained reranking
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     query = "contract formation requirements"
     print(f"\nQuery: {query}")
-    print(f"Retrieving top {TOP_K_RETRIEVAL} candidates...")
+    print(f"Retrieving top {TOP_K_RERANK} candidates...")
 
     results = reranker.search_and_rerank(query, top_k_rerank=5)
 

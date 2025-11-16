@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SearchBar, SearchResults, CaseDetail } from '@/components';
 import { useSearch } from '@/hooks';
+import { SearchMethod } from '@/types';
 
 const Search: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [method, setMethod] = useState<SearchMethod>('bm25');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
@@ -13,22 +15,26 @@ const Search: React.FC = () => {
 
   useEffect(() => {
     const q = searchParams.get('q');
+    const m = searchParams.get('method') as SearchMethod;
     if (q) {
       setQuery(q);
-      search(q, 1);
+      const searchMethod = m && ['bm25', 'dense', 'dense_rerank'].includes(m) ? m : 'bm25';
+      setMethod(searchMethod);
+      search(q, searchMethod, 1);
     }
   }, [searchParams]);
 
-  const handleSearch = async (searchQuery: string, page = 1) => {
+  const handleSearch = async (searchQuery: string, searchMethod: SearchMethod, page = 1) => {
     setQuery(searchQuery);
+    setMethod(searchMethod);
     setCurrentPage(page);
-    setSearchParams({ q: searchQuery });
-    await search(searchQuery, page);
+    setSearchParams({ q: searchQuery, method: searchMethod });
+    await search(searchQuery, searchMethod, page);
   };
 
   const handlePageChange = (newPage: number) => {
     if (query) {
-      handleSearch(query, newPage);
+      handleSearch(query, method, newPage);
     }
   };
 

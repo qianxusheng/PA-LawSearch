@@ -1,13 +1,14 @@
 import { API_BASE_URL, PAGINATION } from '../constants';
-import { SearchResponse, CaseDetail } from '../types';
+import { SearchResponse, CaseDetail, SearchMethod } from '../types';
 
 export const getCases = async (
   query: string,
   page: number = PAGINATION.DEFAULT_PAGE,
-  size: number = PAGINATION.DEFAULT_PAGE_SIZE
+  size: number = PAGINATION.DEFAULT_PAGE_SIZE,
+  method: SearchMethod = 'bm25'
 ): Promise<SearchResponse> => {
   const response = await fetch(
-    `${API_BASE_URL}/cases?query=${encodeURIComponent(query)}&size=${size}&page=${page}`
+    `${API_BASE_URL}/cases?query=${encodeURIComponent(query)}&size=${size}&page=${page}&method=${method}`
   );
 
   if (!response.ok) {

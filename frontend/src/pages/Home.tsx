@@ -1,13 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchBar } from '@/components';
+import { SearchMethod } from '@/types';
 import { ROUTES } from '@/constants';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleSearch = (query: string) => {
-    navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(query)}`);
+  const handleSearch = (query: string, method: SearchMethod) => {
+    navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(query)}&method=${method}`);
   };
 
   return (

@@ -14,6 +14,10 @@ API_HOST = "0.0.0.0"
 API_PORT = 5000
 API_DEBUG = True
 
+# Redis configuration
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+
 # Model Configuration
 # Legal-BERT models for encoding
 DUAL_ENCODER_MODEL = "nlpaueb/legal-bert-base-uncased"  # For dual-encoder (retrieval)

@@ -34,11 +34,12 @@ class DenseSearcher:
 
     def search(self, query, size=10, from_=0):
         """
-        Search using dense vectors (semantic search)
+        Search using dense vectors (KNN with application-layer pagination)
+        Limited to top 1000 results for performance
 
         Args:
             query: Query string
-            size: Number of results to return
+            size: Number of results to return per page
             from_: Offset for pagination
 
         Returns:
@@ -46,12 +47,21 @@ class DenseSearcher:
         """
         query_vector = self.encoder.encode_query(query).tolist()
 
+        # Use KNN to retrieve top 1000 results, then paginate in application layer
         es_query = {
+            "size": 1000,  # Must set size to actually return k results
             "knn": {
                 "field": "dense_vector",
                 "query_vector": query_vector,
-                "k": size + from_,
-                "num_candidates": max((size + from_) * 2, 10000)
+                "k": 1000,  # Find top 1000 nearest neighbors
+                "num_candidates": 5000,  # Explore 5000 candidates for better accuracy
+                "filter": {
+                    "range": {
+                        "word_count": {
+                            "gte": 100  # Filter out short documents (ORDERs, docket entries)
+                        }
+                    }
+                }
             },
             "_source": ["id", "name", "decision_date", "court_name",
                        "jurisdiction_name", "word_count"]
@@ -59,12 +69,19 @@ class DenseSearcher:
 
         response = self.es.search(index=self.index_name, body=es_query)
 
+        # Get all hits returned by KNN (up to k=1000)
+        all_hits = response["hits"]["hits"]
+        total_available = len(all_hits)
+
         results = {
-            "total": response["hits"]["total"]["value"],
+            "total": total_available,  # Total available (max 1000)
             "results": []
         }
 
-        for hit in response["hits"]["hits"][from_:]:
+        # Paginate: slice from from_ to from_ + size
+        paginated_hits = all_hits[from_:from_ + size]
+
+        for hit in paginated_hits:
             doc = hit["_source"]
             results["results"].append({
                 "id": doc.get("id"),
@@ -115,11 +132,19 @@ class DenseSearcher:
         query_vector = self.encoder.encode_query(query).tolist()
 
         es_query = {
+            "size": size,
             "knn": {
                 "field": "dense_vector",
                 "query_vector": query_vector,
                 "k": size,
-                "num_candidates": size * 2
+                "num_candidates": size * 5,
+                "filter": {
+                    "range": {
+                        "word_count": {
+                            "gte": 100  # Filter out short documents (ORDERs, docket entries)
+                        }
+                    }
+                }
             },
             "_source": ["id", "name", "decision_date", "court_name",
                        "jurisdiction_name", "word_count", "full_text"]

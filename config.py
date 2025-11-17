@@ -17,7 +17,7 @@ API_DEBUG = True
 # Model Configuration
 # Legal-BERT models for encoding
 DUAL_ENCODER_MODEL = "nlpaueb/legal-bert-base-uncased"  # For dual-encoder (retrieval)
-CROSS_ENCODER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # For reranking
+CROSS_ENCODER_MODEL = "BAAI/bge-reranker-large" 
 
 # Retrieval Configuration
 DENSE_VECTOR_DIM = 768     # BERT base dimension

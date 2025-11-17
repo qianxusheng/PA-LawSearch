@@ -2,7 +2,7 @@
 API Routes for Legal Case Search
 """
 from flask import request, jsonify
-from config import ES_INDEX_BM25, ES_INDEX_DENSE
+from config import ES_INDEX_BM25, ES_INDEX_DENSE, TOP_K_RERANK
 
 
 def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker):
@@ -82,7 +82,7 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
 
             elif method == "dense_rerank":
                 ranker = get_reranker()
-                all_results = ranker.search_and_rerank(query_text, top_k_rerank=None)
+                all_results = ranker.search_and_rerank(query_text, top_k=TOP_K_RERANK)
 
                 start = (page - 1) * size
                 end = start + size

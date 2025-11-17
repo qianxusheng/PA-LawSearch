@@ -27,26 +27,26 @@ class Reranker:
             self.dense_searcher = dense_searcher
         self.cross_encoder = cross_encoder or CrossEncoder()
 
-    def search_and_rerank(self, query, top_k_retrieval=TOP_K_RERANK,
-                          top_k_rerank=None):
+    def search_and_rerank(self, query, top_k=TOP_K_RERANK):
         """
         Two-stage retrieval: coarse retrieval + fine-grained reranking
 
         Args:
             query: Query string
-            top_k_retrieval: Number of candidates from dense retrieval
-            top_k_rerank: Number of final results to return (None = return all ranked)
+            top_k: Number of candidates to retrieve and rerank (default: TOP_K_RERANK)
 
         Returns:
             dict with 'total', 'results' keys
         """
+        # Retrieve top_k candidates from dense searcher
         candidates = self.dense_searcher.search_with_full_text(
-            query, size=top_k_retrieval
+            query, size=top_k
         )
 
         if not candidates:
             return {"total": 0, "results": []}
 
+        # Rerank all candidates
         documents = [doc.get("full_text", "")[:2000] for doc in candidates]
         ranked_indices_scores = self.cross_encoder.rerank(query, documents)
 
@@ -55,8 +55,8 @@ class Reranker:
             "results": []
         }
 
-        limit = top_k_rerank if top_k_rerank is not None else len(ranked_indices_scores)
-        for idx, score in ranked_indices_scores[:limit]:
+        # Return all reranked results
+        for idx, score in ranked_indices_scores:
             doc = candidates[idx]
             results["results"].append({
                 "id": doc.get("id"),
@@ -78,12 +78,12 @@ if __name__ == "__main__":
 
     query = "contract formation requirements"
     print(f"\nQuery: {query}")
-    print(f"Retrieving top {TOP_K_RERANK} candidates...")
+    print(f"Retrieving and reranking top {TOP_K_RERANK} candidates...")
 
-    results = reranker.search_and_rerank(query, top_k_rerank=5)
+    results = reranker.search_and_rerank(query, top_k=TOP_K_RERANK)
 
     print(f"\nFound {results['total']} candidates")
-    print(f"\nTop 5 after reranking:")
-    for i, result in enumerate(results['results'], 1):
+    print(f"\nTop {min(5, len(results['results']))} after reranking:")
+    for i, result in enumerate(results['results'][:5], 1):
         print(f"{i}. {result['name']}")
         print(f"   Rerank score: {result['score']:.4f}, Dense score: {result['dense_score']:.4f}")

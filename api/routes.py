@@ -3,7 +3,7 @@ API Routes for Legal Case Search
 """
 from flask import request, jsonify
 from config import ES_INDEX_BM25, ES_INDEX_DENSE, TOP_K_RERANK
-
+from cache.redis import SearchCache 
 
 def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker):
     """
@@ -16,7 +16,7 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
         get_dense_searcher: Function to get dense searcher
         get_reranker: Function to get reranker
     """
-
+    cache = SearchCache()
     @app.route('/cases', methods=['GET'])
     def get_cases():
         """
@@ -81,8 +81,13 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
                 results["method"] = "dense"
 
             elif method == "dense_rerank":
-                ranker = get_reranker()
-                all_results = ranker.search_and_rerank(query_text, top_k=TOP_K_RERANK)
+                cached = cache.get(query_text, method)
+                if cached:
+                    all_results = cached
+                else:
+                    ranker = get_reranker()
+                    all_results = ranker.search_and_rerank(query_text, top_k=TOP_K_RERANK)
+                    cache.set(query_text, method, all_results)
 
                 start = (page - 1) * size
                 end = start + size

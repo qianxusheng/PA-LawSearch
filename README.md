@@ -88,6 +88,23 @@ Update `config.py` with your Elasticsearch credentials:
 
 ### 3. Create Indices
 
+**Offline Indexing Pipeline:**
+
+```mermaid
+flowchart TB
+    Raw[📁 Raw Data<br/>ZIP files with JSON] --> Extract[Extract Cases]
+
+    Extract --> Path1[BM25 Path]
+    Extract --> Path2[Dense Path]
+
+    Path1 --> Analyze[Text Analysis<br/>lowercase, stemming, stop words]
+    Analyze --> BM25Idx[(BM25 Index<br/>pa_law_cases_bm25)]
+
+    Path2 --> Batch[Batch Process<br/>batch_size=8]
+    Batch --> Embed[Legal-BERT Encode<br/>→ 768-dim vectors]
+    Embed --> DenseIdx[(Dense Index<br/>pa_law_cases_dense<br/>+ KNN index)]
+```
+
 #### BM25 Index (Baseline)
 ```bash
 python -m indexing.bm25_indexer
@@ -182,6 +199,25 @@ GET /health
 | BM25 | ~20ms | ~20ms |
 | Dense | ~100ms | ~100ms |
 | Dense+Rerank | ~3s | **~10ms** ⚡ |
+
+## 💾 Data Storage
+
+**Storage Architecture:**
+
+```mermaid
+flowchart TB
+    subgraph ES[Elasticsearch]
+        BM25[(BM25 Index<br/>~200k docs<br/>Inverted Index)]
+        Dense[(Dense Index<br/>~200k docs<br/>768-dim vectors<br/>KNN: cosine)]
+    end
+
+    subgraph Cache[Redis Cache]
+        Keys["Keys: search:method:query_hash<br/>Values: Full result list<br/>TTL: 5-15 min"]
+    end
+
+    API[Flask API] --> Cache
+    API --> ES
+```
 
 ## ⚙️ Configuration
 

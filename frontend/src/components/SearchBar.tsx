@@ -5,6 +5,8 @@ import MethodRadio from './MethodRadio';
 interface SearchBarProps {
   onSearch: (query: string, method: SearchMethod) => void;
   isLoading: boolean;
+  initialQuery?: string;
+  initialMethod?: SearchMethod;
 }
 
 const SEARCH_METHODS = [
@@ -13,9 +15,18 @@ const SEARCH_METHODS = [
   { value: 'dense_rerank' as SearchMethod, label: 'Dense+Rerank' }
 ];
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading }) => {
-  const [query, setQuery] = useState('');
-  const [method, setMethod] = useState<SearchMethod>('bm25');
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, initialQuery = '', initialMethod = 'bm25' }) => {
+  const [query, setQuery] = useState(initialQuery);
+  const [method, setMethod] = useState<SearchMethod>(initialMethod);
+
+  // Update query and method when props change
+  React.useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
+
+  React.useEffect(() => {
+    setMethod(initialMethod);
+  }, [initialMethod]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

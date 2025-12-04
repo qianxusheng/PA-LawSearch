@@ -60,7 +60,12 @@ const Search: React.FC = () => {
     <div className="min-h-screen bg-white">
       <div className="p-6 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto">
-          <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+          <SearchBar
+            onSearch={handleSearch}
+            isLoading={isLoading}
+            initialQuery={query}
+            initialMethod={method}
+          />
         </div>
       </div>
 

@@ -285,42 +285,20 @@ negligence standard of care in medical malpractice
 ## 📈 Evaluation Pipeline
 
 ```mermaid
-flowchart TB
-    Start[Generate Legal Queries] --> Categories
+flowchart LR
+    Queries[Generate Queries<br/>Criminal/Contract/Property/Tort<br/>20-50 queries] --> Methods{3 Methods}
 
-    subgraph Categories[Query Categories]
-        Q1[Criminal Law]
-        Q2[Contract Law]
-        Q3[Property Law]
-        Q4[Tort Law]
-    end
+    Methods --> BM25[BM25]
+    Methods --> Dense[Dense]
+    Methods --> Rerank[Dense+Rerank]
 
-    Categories --> TestQueries[20-50 Test Queries]
+    BM25 --> Results[Top-10<br/>Results]
+    Dense --> Results
+    Rerank --> Results
 
-    TestQueries --> Methods
+    Results --> LLM[LLM Judge<br/>Claude/GPT-4<br/>Relevant? 0/1]
 
-    subgraph Methods[Retrieval Methods]
-        BM25[BM25 Searcher]
-        Dense[Dense Searcher]
-        Rerank[Dense + Rerank]
-    end
+    LLM --> Metrics[Calculate Metrics]
 
-    Methods --> Results[Top-10 Results per Method]
-
-    Results --> LLM[LLM Judge: Claude/GPT-4]
-
-    LLM --> Annotation["For each Query + Case:<br/>Is it Relevant? 0/1"]
-
-    Annotation --> Labels[(Relevance Labels)]
-
-    Labels --> Metrics[Calculate Evaluation Metrics]
-
-    Metrics --> Comparison[Compare Methods]
-
-    Comparison --> Visualization
-
-    subgraph Visualization[Results]
-        Charts[Bar Charts]
-        Tables[Comparison Tables]
-    end
+    Metrics --> Compare[Compare & Visualize]
 ```

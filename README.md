@@ -300,5 +300,5 @@ flowchart LR
 
     LLM --> Metrics[Calculate Metrics]
 
-    Metrics --> Compare[Compare & Visualize]
+    Metrics --> Compare[Compare and Visualize]
 ```

@@ -254,7 +254,7 @@ def index_documents(es, data_dir="data", batch_size=500):
     try:
         # Give ES more time to apply settings on a big index
         es.options(request_timeout=60).indices.put_settings(
-            index=index_name,
+            index=ES_INDEX_BM25,
             body={"index": {"refresh_interval": "1s"}}
         )
     except Exception as e:

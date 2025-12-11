@@ -6,9 +6,6 @@ ES_HOST = "https://localhost:9200"
 ES_INDEX_BM25 = "pa_law_cases_bm25"      # BM25 baseline
 ES_INDEX_DENSE = "pa_law_cases_dense"    # Dense vector index
 
-# Legacy support (for backward compatibility)
-ES_INDEX_NAME = ES_INDEX_BM25
-
 # API Configuration
 API_HOST = "0.0.0.0"
 API_PORT = 5000

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SearchBar, SearchResults, CaseDetail } from '@/components';
 import { useSearch } from '@/hooks';
-import { SearchMethod } from '@/types';
+import { SearchMethod, SearchFilters } from '@/types';
+import { Link } from 'react-router-dom';
 
 const Search: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -11,6 +12,7 @@ const Search: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [jumpToPage, setJumpToPage] = useState('');
+  const [filters, setFilters] = useState<SearchFilters>({});
 
   const { results, total, isLoading, error, search } = useSearch();
 
@@ -25,17 +27,23 @@ const Search: React.FC = () => {
     }
   }, [searchParams]);
 
-  const handleSearch = async (searchQuery: string, searchMethod: SearchMethod, page = 1) => {
+  const handleSearch = async (
+    searchQuery: string,
+    searchMethod: SearchMethod,
+    newFilters: SearchFilters,
+    page = 1
+  ) => {
     setQuery(searchQuery);
     setMethod(searchMethod);
+    setFilters(newFilters);
     setCurrentPage(page);
     setSearchParams({ q: searchQuery, method: searchMethod });
-    await search(searchQuery, searchMethod, page);
+    await search(searchQuery, searchMethod, page, newFilters);
   };
 
   const handlePageChange = (newPage: number) => {
     if (query) {
-      handleSearch(query, method, newPage);
+      handleSearch(query, method, filters, newPage);
     }
   };
 
@@ -51,7 +59,7 @@ const Search: React.FC = () => {
     const pageNum = parseInt(jumpToPage);
     const maxPage = Math.ceil(total / 10);
     if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= maxPage) {
-      handleSearch(query, method, pageNum);
+      handleSearch(query, method, filters, pageNum);
       setJumpToPage('');
     }
   };
@@ -60,6 +68,24 @@ const Search: React.FC = () => {
     <div className="min-h-screen bg-white">
       <div className="p-6 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto">
+          <header className="mb-6">
+            <Link to="/" className="inline-flex flex-col">
+              <span className="text-xl font-semibold text-gray-900">
+                Pennsylvania Legal Case Search
+              </span>
+              <span className="text-sm text-gray-500">
+                Reference:{' '}
+                <a
+                  href="https://case.law"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-indigo-600 hover:underline"
+                >
+                  case.law
+                </a>
+              </span>
+            </Link>
+          </header>
           <SearchBar
             onSearch={handleSearch}
             isLoading={isLoading}

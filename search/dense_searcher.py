@@ -58,7 +58,7 @@ class DenseSearcher:
                 "filter": {
                     "range": {
                         "word_count": {
-                            "gte": 100  # Filter out short documents (ORDERs, docket entries)
+                            "gte": 1000  # Filter out short documents (ORDERs, docket entries)
                         }
                     }
                 }
@@ -141,7 +141,7 @@ class DenseSearcher:
                 "filter": {
                     "range": {
                         "word_count": {
-                            "gte": 100  # Filter out short documents (ORDERs, docket entries)
+                            "gte": 1000  # Filter out short documents (ORDERs, docket entries)
                         }
                     }
                 }

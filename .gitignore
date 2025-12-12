@@ -3,6 +3,9 @@ data/
 data/**/*.json
 term_postings.json
 
+# Environment variables
+.env
+
 # Python
 __pycache__/
 *.py[cod]

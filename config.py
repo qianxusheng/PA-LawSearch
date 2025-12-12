@@ -1,7 +1,7 @@
 # ES Configuration
 import os
 ES_PASSWORD = os.getenv("ES_PASSWORD", "0=ej+ZeERilvX9QENqYQ")
-ES_HOST = os.getenv("ES_HOST", "https://localhost:9200")
+ES_HOST = os.getenv("ES_HOST", "http://localhost:9200")
 
 # Multiple index names for different retrieval methods
 ES_INDEX_BM25 = "pa_law_cases"      # BM25 baseline

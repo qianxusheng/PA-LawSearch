@@ -58,6 +58,11 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
             size = int(request.args.get("size", 10))
             page = int(request.args.get("page", 1))
 
+            court_name = request.args.get("court", "").strip() or None
+            start_date = request.args.get("start_date") or None
+            end_date = request.args.get("end_date") or None
+
+
             if not query_text:
                 return jsonify({"error": "query parameter is required"}), 400
 
@@ -67,7 +72,14 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
             if method == "bm25":
                 searcher = get_bm25_searcher()
                 from_ = (page - 1) * size
-                results = searcher.search(query_text, size=size, from_=from_)
+                results = searcher.search(
+                    query_text,
+                    size=size,
+                    from_=from_,
+                    court_name=court_name,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
                 results["page"] = page
                 results["size"] = size
                 results["method"] = "bm25"

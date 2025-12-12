@@ -2,7 +2,12 @@
 Cross-Encoder for reranking
 Used for fine-grained reranking stage
 """
-import torch
+try:
+    import torch
+    TORCH_IMPORT_ERROR = None
+except OSError as e:
+    torch = None
+    TORCH_IMPORT_ERROR = e
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from config import CROSS_ENCODER_MODEL
 import numpy as np
@@ -17,6 +22,12 @@ class CrossEncoder:
             model_name: HuggingFace model name
             device: 'cuda' or 'cpu', auto-detect if None
         """
+        if TORCH_IMPORT_ERROR is not None:
+            raise RuntimeError(
+                "PyTorch could not be loaded on this system, "
+                "so dense reranking is not available.\n"
+                f"Underlying error: {TORCH_IMPORT_ERROR}"
+            )
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"Loading cross-encoder model: {model_name}")
         print(f"Using device: {self.device}")

@@ -281,3 +281,24 @@ negligence standard of care in medical malpractice
 
 - **Source**: Pennsylvania legal cases from case.law API
 - **Size**: ~200,000 documents
+
+## 📈 Evaluation Pipeline
+
+```mermaid
+flowchart LR
+    Queries[Generate Queries<br/>Criminal/Contract/Property/Tort<br/>20-50 queries] --> Methods{3 Methods}
+
+    Methods --> BM25[BM25]
+    Methods --> Dense[Dense]
+    Methods --> Rerank[Dense+Rerank]
+
+    BM25 --> Results[Top-10<br/>Results]
+    Dense --> Results
+    Rerank --> Results
+
+    Results --> LLM[LLM Judge<br/>Claude/GPT-4<br/>Relevant? 0/1]
+
+    LLM --> Metrics[Calculate Metrics]
+
+    Metrics --> Compare[Compare and Visualize]
+```

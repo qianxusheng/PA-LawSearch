@@ -2,7 +2,13 @@
 Dual-Encoder using Legal-BERT for generating dense vectors
 Used for coarse-grained retrieval stage
 """
-import torch
+try:
+    import torch
+    TORCH_IMPORT_ERROR = None
+except OSError as e:
+    # Torch failed to load (e.g., DLL init error on Windows)
+    torch = None
+    TORCH_IMPORT_ERROR = e
 from transformers import AutoTokenizer, AutoModel
 from config import DUAL_ENCODER_MODEL
 import numpy as np
@@ -17,6 +23,12 @@ class DualEncoder:
             model_name: HuggingFace model name
             device: 'cuda' or 'cpu', auto-detect if None
         """
+        if TORCH_IMPORT_ERROR is not None:
+            raise RuntimeError(
+                "PyTorch could not be loaded on this system, "
+                "so dense retrieval is not available.\n"
+                f"Underlying error: {TORCH_IMPORT_ERROR}"
+            )
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"Loading dual-encoder model: {model_name}")
         print(f"Using device: {self.device}")

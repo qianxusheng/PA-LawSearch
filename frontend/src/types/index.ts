@@ -1,13 +1,10 @@
 // Search method types
 export type SearchMethod = 'bm25' | 'dense' | 'dense_rerank';
 
-// backend api response type
-export interface SearchResponse {
-  total: number;
-  page: number;
-  size: number;
-  method?: SearchMethod;
-  results: CaseResult[];
+export interface SearchFilters {
+  court?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface CaseResult {
@@ -18,6 +15,16 @@ export interface CaseResult {
   court_name?: string;
   jurisdiction_name?: string;
   word_count?: number;
+  // highlight snippet returned by backend (contains <mark> tags)
+  snippet?: string;
+}
+
+export interface SearchResponse {
+  total: number;
+  page: number;
+  size: number;
+  method?: SearchMethod;
+  results: CaseResult[];
 }
 
 export interface CaseDetail {

@@ -7,8 +7,8 @@ Multi-method legal case retrieval system for 200k+ Pennsylvania legal cases with
 This project implements three retrieval methods for legal case search:
 
 1. **BM25 (Baseline)**: Traditional keyword-based retrieval (~20ms)
-2. **Dense Retrieval**: Legal-BERT dual-encoder for semantic search (~100ms)
-3. **Dense + Reranking**: Two-stage retrieval with cross-encoder reranking (~3s, cached ~10ms)
+2. **Dense Retrieval**: Legal-BERT dual-encoder for semantic search (~1s)
+3. **Dense + Reranking**: Two-stage retrieval with cross-encoder reranking (~30s, cached ~10ms)
 
 ## 🏗️ System Architecture
 

@@ -1,6 +1,7 @@
 # ES Configuration
-ES_PASSWORD = "your-local-es-password"
-ES_HOST = "https://localhost:9200"
+import os
+ES_PASSWORD = os.getenv("ES_PASSWORD", "0=ej+ZeERilvX9QENqYQ")
+ES_HOST = os.getenv("ES_HOST", "https://localhost:9200")
 
 # Multiple index names for different retrieval methods
 ES_INDEX_BM25 = "pa_law_cases"      # BM25 baseline
@@ -12,8 +13,8 @@ API_PORT = 5000
 API_DEBUG = True
 
 # Redis configuration
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
 # Model Configuration
 # Legal-BERT models for encoding

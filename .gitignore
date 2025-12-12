@@ -1,6 +1,6 @@
 # Data files
 data/
-*.json
+data/**/*.json
 term_postings.json
 
 # Python

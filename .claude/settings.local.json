@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import zipfile, os; base = r''c:\\Users\\46614\\Desktop\\spring2025\\08.26.2025-12.06.2025\\IR\\final_project\\IR\\data''; has_cases = []; [(has_cases.append(d) if any(''cases/'' in f for f in zipfile.ZipFile(os.path.join(base, d, ''1.zip'')).namelist()) else None) for d in os.listdir(base) if os.path.isdir(os.path.join(base, d)) and os.path.exists(os.path.join(base, d, ''1.zip''))]; print(''Folders with cases/:'', has_cases if has_cases else ''None found'')\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

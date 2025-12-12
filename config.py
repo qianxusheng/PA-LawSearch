@@ -1,9 +1,9 @@
 # ES Configuration
-ES_PASSWORD = "0=ej+ZeERilvX9QENqYQ"
+ES_PASSWORD = "your-local-es-password"
 ES_HOST = "https://localhost:9200"
 
 # Multiple index names for different retrieval methods
-ES_INDEX_BM25 = "pa_law_cases_bm25"      # BM25 baseline
+ES_INDEX_BM25 = "pa_law_cases"      # BM25 baseline
 ES_INDEX_DENSE = "pa_law_cases_dense"    # Dense vector index
 
 # API Configuration

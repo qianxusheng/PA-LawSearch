@@ -1,14 +1,22 @@
-# PA Legal Case Search System
+# PA Legal Case Search & RAG System
 
-Multi-method legal case retrieval system for 200k+ Pennsylvania legal cases with BM25 baseline and BERT-based semantic search.
+Multi-method legal case retrieval system for 200k+ Pennsylvania legal cases with BM25 baseline, BERT-based semantic search, and RAG-powered Q&A.
 
 ## 🎯 Overview
 
-This project implements three retrieval methods for legal case search:
+This project implements multiple retrieval methods and an AI-powered Q&A system:
 
-1. **BM25 (Baseline)**: Traditional keyword-based retrieval (~20ms)
-2. **Dense Retrieval**: Legal-BERT dual-encoder for semantic search (~100ms)
-3. **Dense + Reranking**: Two-stage retrieval with cross-encoder reranking (~3s, cached ~10ms)
+### Search Methods
+1. **BM25 (Baseline)**: Traditional keyword-based retrieval 
+2. **Dense Retrieval**: Legal-BERT dual-encoder for semantic search 
+3. **Dense + Reranking**: Two-stage retrieval with cross-encoder reranking
+4. **BM25 + Reranking**: BM25 retrieval with cross-encoder reranking
+
+### RAG Q&A System
+- **Hybrid Fusion**: Combines BM25 + Dense retrieval using Reciprocal Rank Fusion (RRF)
+- **LLM Generation**: Qwen3:8b via Ollama for answer generation
+- **Streaming**: Real-time streaming responses for better UX
+- **Citations**: Automatically cites relevant cases in answers
 
 ## 🏗️ System Architecture
 
@@ -24,7 +32,33 @@ flowchart TB
     Return --> Frontend
 ```
 
-### Three Retrieval Methods
+### RAG Q&A Pipeline
+
+```mermaid
+flowchart TB
+    Question[❓ User Question] --> Hybrid[🔀 Hybrid Fusion]
+
+    Hybrid --> BM25R[BM25 Retrieval]
+    Hybrid --> DenseR[Dense Retrieval]
+
+    BM25R --> ES1[(ES BM25 Index)]
+    DenseR --> BERT[Legal-BERT Encoder] --> ES2[(ES Dense Index)]
+
+    ES1 --> RRF[⚡ Reciprocal Rank Fusion]
+    ES2 --> RRF
+
+    RRF --> TopK[📚 Top-K Cases<br/>k=5, max 5000 chars each]
+    TopK --> Prompt[📝 Build Prompt<br/>Context + Instructions]
+
+    Prompt --> Ollama[🤖 Ollama LLM<br/>Qwen3:8b]
+    Ollama -->|Stream| Chunks[💬 Answer Chunks]
+    Chunks --> Frontend[🖥️ Real-time Display]
+
+    TopK --> Citations[📖 Case Citations]
+    Citations --> Frontend
+```
+
+### Four Retrieval Methods
 
 ```mermaid
 flowchart LR
@@ -33,14 +67,17 @@ flowchart LR
     Method -->|BM25| BM25[BM25 Searcher<br/>~20ms]
     Method -->|Dense| Dense[Dense Searcher<br/>~100ms]
     Method -->|Dense+Rerank| Rerank[Reranker<br/>~3s]
+    Method -->|BM25+Rerank| BM25Rerank[BM25 Reranker<br/>~2s]
 
     BM25 --> ES1[(ES BM25 Index)]
     Dense --> BERT1[Legal-BERT] --> ES2[(ES Dense Index)]
     Rerank --> BERT2[Legal-BERT] --> ES3[(ES Dense Index)] --> Cross[Cross-Encoder<br/>Rerank Top-200]
+    BM25Rerank --> ES4[(ES BM25 Index)] --> Cross2[Cross-Encoder<br/>Rerank Top-200]
 
     ES1 --> Results
     ES2 --> Results
     Cross --> Results[📊 Ranked Results]
+    Cross2 --> Results
 ```
 
 ## 📁 Project Structure
@@ -53,7 +90,7 @@ IR/
 │
 ├── api/                        # API package
 │   ├── app.py                 # Flask app setup & entry point
-│   └── routes.py              # API routes
+│   └── routes.py              # API routes (search + RAG)
 │
 ├── indexing/                   # Indexing scripts
 │   ├── bm25_indexer.py        # Create BM25 index
@@ -66,9 +103,21 @@ IR/
 ├── search/                     # Search implementations
 │   ├── bm25_searcher.py       # BM25 search
 │   ├── dense_searcher.py      # Dense vector search
-│   └── reranker.py            # Two-stage retrieval
+│   ├── reranker.py            # Two-stage retrieval (dense + cross-encoder)
+│   ├── bm25_reranker.py       # BM25 + cross-encoder reranking
+│   └── bm25_dense_for_rag.py  # Hybrid fusion (BM25 + Dense with RRF)
+│
+├── rag/                        # RAG Q&A system
+│   └── rag_service.py         # RAG pipeline (retrieval + LLM generation)
 │
 └── frontend/                   # React frontend
+    ├── src/
+    │   ├── pages/
+    │   │   ├── Home.tsx       # Landing page
+    │   │   ├── Search.tsx     # Search results page
+    │   │   └── Ask.tsx        # RAG Q&A interface
+    │   └── components/
+    │       └── SearchBar.tsx  # Search input component
     └── ...
 ```
 
@@ -86,7 +135,27 @@ Update `config.py` with your Elasticsearch credentials:
 - `ES_HOST`: Your Elasticsearch host
 - `ES_PASSWORD`: Your Elasticsearch password
 
-### 3. Create Indices
+### 3. Setup Ollama (for RAG Q&A)
+
+Install and run Ollama for the RAG Q&A feature:
+
+```bash
+# Install Ollama (https://ollama.ai)
+# On macOS/Linux:
+curl -fsSL https://ollama.com/install.sh | sh
+
+# On Windows: Download from https://ollama.com/download
+
+# Pull the Qwen3 8B model
+ollama pull qwen3:8b
+
+# Start Ollama server (runs on localhost:11434)
+ollama serve
+```
+
+Note: Keep Ollama running in a separate terminal for the RAG Q&A feature to work.
+
+### 4. Create Indices
 
 **Offline Indexing Pipeline:**
 

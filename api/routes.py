@@ -5,7 +5,7 @@ from flask import request, jsonify
 from config import ES_INDEX_BM25, ES_INDEX_DENSE, TOP_K_RERANK
 from cache.redis import SearchCache 
 
-def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker):
+def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker, get_bm25_reranker, get_rag_service=None):
     """
     Register all API routes
 
@@ -15,6 +15,8 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
         get_bm25_searcher: Function to get BM25 searcher
         get_dense_searcher: Function to get dense searcher
         get_reranker: Function to get reranker
+        get_bm25_reranker: Function to get BM25 reranker
+        get_rag_service: Function to get RAG service (optional)
     """
     cache = SearchCache()
     @app.route('/cases', methods=['GET'])
@@ -66,8 +68,8 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
             if not query_text:
                 return jsonify({"error": "query parameter is required"}), 400
 
-            if method not in ["bm25", "dense", "dense_rerank"]:
-                return jsonify({"error": "method must be 'bm25', 'dense', or 'dense_rerank'"}), 400
+            if method not in ["bm25", "dense", "dense_rerank", "bm25_rerank"]:
+                return jsonify({"error": "method must be 'bm25', 'dense', 'dense_rerank', or 'bm25_rerank'"}), 400
 
             if method == "bm25":
                 searcher = get_bm25_searcher()
@@ -110,6 +112,26 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
                     "page": page,
                     "size": size,
                     "method": "dense_rerank"
+                }
+
+            elif method == "bm25_rerank":
+                cached = cache.get(query_text, method)
+                if cached:
+                    all_results = cached
+                else:
+                    ranker = get_bm25_reranker()
+                    all_results = ranker.search_and_rerank(query_text, top_k=TOP_K_RERANK)
+                    cache.set(query_text, method, all_results)
+
+                start = (page - 1) * size
+                end = start + size
+
+                results = {
+                    "total": all_results["total"],
+                    "results": all_results["results"][start:end],
+                    "page": page,
+                    "size": size,
+                    "method": "bm25_rerank"
                 }
 
             return jsonify(results), 200
@@ -200,3 +222,52 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
                 "status": "unhealthy",
                 "error": str(e)
             }), 500
+
+
+    @app.route('/ask', methods=['POST'])
+    def ask_question():
+        """
+        RAG endpoint: Answer legal questions using retrieved cases (streaming)
+
+        Request body (JSON):
+        {
+            "question": "What are the requirements for contract formation?",
+            "k": 5  // optional, number of cases to retrieve (default: 5)
+        }
+
+        Response: Server-Sent Events stream
+        """
+        import json
+
+        try:
+            if get_rag_service is None:
+                return jsonify({"error": "RAG service not available"}), 503
+
+            data = request.get_json()
+            if not data or "question" not in data:
+                return jsonify({"error": "question field is required in request body"}), 400
+
+            question = data["question"].strip()
+            k = data.get("k", 5)  # Default to 5 retrieved cases
+
+            if not question:
+                return jsonify({"error": "question cannot be empty"}), 400
+
+            # Get RAG service and stream answer
+            rag = get_rag_service()
+
+            def generate():
+                for chunk in rag.ask(question, k=k):
+                    yield f"data: {json.dumps(chunk)}\n\n"
+
+            return app.response_class(
+                generate(),
+                mimetype='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'X-Accel-Buffering': 'no'
+                }
+            )
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500

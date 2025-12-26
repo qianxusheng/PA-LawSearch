@@ -31,7 +31,7 @@ DENSE_VECTOR_DIM = 768     # BERT base dimension
 # - 100: Fast (~1-2s), good for most queries
 # - 200: Moderate (~2-4s), better recall
 # - 500: Slow (~5-10s), best recall
-TOP_K_RERANK = 200      # Candidates to rerank (only affects dense_rerank method)
+TOP_K_RERANK = 50      # Candidates to rerank (only affects dense_rerank method)
 
 # For direct dense search: no hard limit (ES will handle pagination)
 # User can browse as many pages as needed

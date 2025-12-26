@@ -1,5 +1,5 @@
 // Search method types
-export type SearchMethod = 'bm25' | 'dense' | 'dense_rerank';
+export type SearchMethod = 'bm25' | 'dense' | 'dense_rerank' | 'bm25_rerank';
 
 export interface SearchFilters {
   court?: string;

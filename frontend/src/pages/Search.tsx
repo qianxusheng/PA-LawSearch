@@ -21,7 +21,7 @@ const Search: React.FC = () => {
     const m = searchParams.get('method') as SearchMethod;
     if (q) {
       setQuery(q);
-      const searchMethod = m && ['bm25', 'dense', 'dense_rerank'].includes(m) ? m : 'bm25';
+      const searchMethod = m && ['bm25', 'dense', 'dense_rerank', 'bm25_rerank'].includes(m) ? m : 'bm25';
       setMethod(searchMethod);
       search(q, searchMethod, 1);
     }

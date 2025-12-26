@@ -54,7 +54,7 @@ class DenseSearcher:
                 "field": "dense_vector",
                 "query_vector": query_vector,
                 "k": 1000,  # Find top 1000 nearest neighbors
-                "num_candidates": 5000,  # Explore 5000 candidates for better accuracy
+                "num_candidates": 2000,  # Explore 2000 candidates (2-3x of k for better speed/accuracy trade-off)
                 "filter": {
                     "range": {
                         "word_count": {
@@ -137,7 +137,7 @@ class DenseSearcher:
                 "field": "dense_vector",
                 "query_vector": query_vector,
                 "k": size,
-                "num_candidates": size * 5,
+                "num_candidates": size * 2,
                 "filter": {
                     "range": {
                         "word_count": {

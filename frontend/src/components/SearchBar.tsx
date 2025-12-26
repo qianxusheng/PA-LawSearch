@@ -13,6 +13,7 @@ const SEARCH_METHODS = [
   { value: 'bm25' as SearchMethod, label: 'BM25' },
   { value: 'dense' as SearchMethod, label: 'Dense' },
   { value: 'dense_rerank' as SearchMethod, label: 'Dense+Rerank' },
+  { value: 'bm25_rerank' as SearchMethod, label: 'BM25+Rerank' },
 ];
 
 const COURT_OPTIONS: { value: string; label: string }[] = [

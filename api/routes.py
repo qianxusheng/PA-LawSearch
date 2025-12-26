@@ -5,7 +5,7 @@ from flask import request, jsonify
 from config import ES_INDEX_BM25, ES_INDEX_DENSE, TOP_K_RERANK
 from cache.redis import SearchCache 
 
-def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker):
+def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker, get_bm25_reranker):
     """
     Register all API routes
 
@@ -66,8 +66,8 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
             if not query_text:
                 return jsonify({"error": "query parameter is required"}), 400
 
-            if method not in ["bm25", "dense", "dense_rerank"]:
-                return jsonify({"error": "method must be 'bm25', 'dense', or 'dense_rerank'"}), 400
+            if method not in ["bm25", "dense", "dense_rerank", "bm25_rerank"]:
+                return jsonify({"error": "method must be 'bm25', 'dense', 'dense_rerank', or 'bm25_rerank'"}), 400
 
             if method == "bm25":
                 searcher = get_bm25_searcher()
@@ -110,6 +110,26 @@ def register_routes(app, es, get_bm25_searcher, get_dense_searcher, get_reranker
                     "page": page,
                     "size": size,
                     "method": "dense_rerank"
+                }
+
+            elif method == "bm25_rerank":
+                cached = cache.get(query_text, method)
+                if cached:
+                    all_results = cached
+                else:
+                    ranker = get_bm25_reranker()
+                    all_results = ranker.search_and_rerank(query_text, top_k=TOP_K_RERANK)
+                    cache.set(query_text, method, all_results)
+
+                start = (page - 1) * size
+                end = start + size
+
+                results = {
+                    "total": all_results["total"],
+                    "results": all_results["results"][start:end],
+                    "page": page,
+                    "size": size,
+                    "method": "bm25_rerank"
                 }
 
             return jsonify(results), 200
